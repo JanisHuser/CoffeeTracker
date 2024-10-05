@@ -64,6 +64,7 @@ def init_db():
         print("Database initialized.")
 
 def setup_app(app):
+    print ("hello, settign up db")
     init_db()
 
 if __name__ == '__main__':
