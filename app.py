@@ -63,6 +63,7 @@ def init_db():
         db.create_all()
         print("Database initialized.")
 
+@app.before_first_request
 def setup_app(app):
     print ("hello, settign up db")
     init_db()
