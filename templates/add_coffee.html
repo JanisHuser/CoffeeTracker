@@ -1,52 +1,263 @@
+{% block scripts %}
+<script>
+    // Globale Funktionen
+    function previewImage(event) {
+        var reader = new FileReader();
+        reader.onload = function () {
+            var output = document.getElementById('imagePreview');
+            output.src = reader.result;
+            output.style.display = 'block';
+        };
+        reader.readAsDataURL(event.target.files[0]);
+    }
+
+    function createChip(text, containerId) {
+        var chip = document.createElement('span');
+        chip.className = 'mdl-chip mdl-chip--deletable';
+        chip.innerHTML = `
+        <span class="mdl-chip__text">${text}</span>
+        <button type="button" class="mdl-chip__action"><i class="material-icons">cancel</i></button>
+    `;
+        chip.querySelector('button').addEventListener('click', function () {
+            chip.remove();
+            updateHiddenInput(containerId);
+        });
+        document.getElementById(containerId).appendChild(chip);
+        updateHiddenInput(containerId);
+    }
+
+    function updateHiddenInput(containerId) {
+        var chips = document.getElementById(containerId).getElementsByClassName('mdl-chip');
+        var values = Array.from(chips).map(chip => chip.querySelector('.mdl-chip__text').textContent);
+        document.getElementById(containerId.replace('Chips', '')).value = values.join(',');
+    }
+
+    function selectProperty(property, value) {
+        document.getElementById(property).value = value;
+        var buttons = document.querySelector(`.button-group.${property}`).querySelectorAll('button');
+        buttons.forEach((button, index) => {
+            if (index + 1 === parseInt(value)) {
+                button.classList.add('active');
+            } else {
+                button.classList.remove('active');
+            }
+        });
+    }
+
+    // Event Listener Funktionen
+    function setupOriginInput() {
+        document.getElementById('origins').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ',') {
+                e.preventDefault();
+                var text = this.value.trim();
+                if (text) {
+                    createChip(text, 'originChips');
+                    this.value = '';
+                }
+            }
+        });
+    }
+
+    function setupNotesInput() {
+        document.getElementById('notes').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ',') {
+                e.preventDefault();
+                var text = this.value.trim();
+                if (text) {
+                    createChip(text, 'noteChips');
+                    this.value = '';
+                }
+            }
+        });
+    }
+
+    function setupButtonGroups() {
+        document.querySelectorAll('.button-group button').forEach(button => {
+            button.addEventListener('click', function () {
+                const property = this.closest('.button-group').classList[1];
+                const value = Array.from(this.parentNode.children).indexOf(this) + 1;
+                selectProperty(property, value);
+            });
+        });
+    }
+
+    // Initialisierungsfunktion
+    function initializeForm() {
+        selectProperty('roast', 3);
+        selectProperty('intensity', 3);
+        selectProperty('acidity', 3);
+        setupOriginInput();
+        setupNotesInput();
+        setupButtonGroups();
+    }
+
+
+
+    // DOMContentLoaded Event Listener
+    document.addEventListener('DOMContentLoaded', initializeForm);
+</script>
+{% endblock %}
+
+
 {% extends "base.html" %}
 {% block content %}
+
+<style>
+    .button-group {
+        display: flex;
+        justify-content: space-between;
+        margin: 20px 0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .button-group button {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        background-color: #f0f0f0;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: bold;
+    }
+
+    .button-group button:not(:last-child) {
+        border-right: 1px solid #ccc;
+    }
+
+    .button-group button.active {
+        background-color: #3f51b5;
+        color: white;
+        box-shadow: inset 0 0 0 2px white;
+    }
+
+    .button-group.roast button:nth-child(1) {
+        background-color: #D2691E;
+        color: white;
+    }
+
+    .button-group.roast button:nth-child(2) {
+        background-color: #8B4513;
+        color: white;
+    }
+
+    .button-group.roast button:nth-child(3) {
+        background-color: #654321;
+        color: white;
+    }
+
+    .button-group.roast button:nth-child(4) {
+        background-color: #3E2723;
+        color: white;
+    }
+
+    .button-group.roast button:nth-child(5) {
+        background-color: #212121;
+        color: white;
+    }
+
+    .button-group.roast button.active {
+        box-shadow: inset 0 0 0 3px yellow;
+    }
+
+    .property-label {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .image-upload-container {
+        margin-bottom: 20px;
+    }
+
+    #imagePreview {
+        margin-top: 10px;
+    }
+
+    .mdl-textfield {
+        width: 100%;
+    }
+
+    .mdl-chip-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 10px;
+    }
+</style>
+
 <div class="mdl-grid">
     <div class="mdl-cell mdl-cell--12-col">
-        <h2>Add New Coffee Bean</h2>
+        <h2>Neue Kaffeesorte hinzufügen</h2>
         <form action="{{ url_for('add_coffee') }}" method="post" enctype="multipart/form-data">
-            <div class="image-upload-container" id="imageUploadContainer">
-                <label for="uploadBtn" class="image-upload-label">
+            <div id="imageUploadContainer" class="image-upload-container">
+                <label for="image" class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
                     <i class="material-icons">add_a_photo</i>
-                    <span>Upload Image</span>
                 </label>
-                <input type="file" id="uploadBtn" name="image" accept="image/*" required style="display: none;">
-                <img id="imagePreview" src="#" alt="Image preview"
-                    style="display: none; max-width: 100%; max-height: 100%; object-fit: contain;">
+                <input type="file" id="image" name="image" style="display: none;" onchange="previewImage(event)"
+                    required>
+                <img id="imagePreview" src="#" alt="Vorschau"
+                    style="display: none; max-width: 100%; max-height: 300px; object-fit: contain;">
             </div>
 
             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                 <input class="mdl-textfield__input" type="text" id="name" name="name" required>
-                <label class="mdl-textfield__label" for="name">Coffee Name</label>
+                <label class="mdl-textfield__label" for="name">Kaffee Name</label>
             </div>
 
+            <div>
+                <div class="property-label">Röstgrad:</div>
+                <input type="hidden" id="roast" name="roast_level" value="3">
+                <div class="button-group roast">
+                    <button type="button" onclick="selectProperty('roast', 1)">Hell</button>
+                    <button type="button" onclick="selectProperty('roast', 2)">Medium-Hell</button>
+                    <button type="button" onclick="selectProperty('roast', 3)">Medium</button>
+                    <button type="button" onclick="selectProperty('roast', 4)">Medium-Dunkel</button>
+                    <button type="button" onclick="selectProperty('roast', 5)">Dunkel</button>
+                </div>
+            </div>
+
+            <div>
+                <div class="property-label">Intensität:</div>
+                <input type="hidden" id="intensity" name="intensity" value="3">
+                <div class="button-group intensity">
+                    <button type="button" onclick="selectProperty('intensity', 1)">Sehr mild</button>
+                    <button type="button" onclick="selectProperty('intensity', 2)">Mild</button>
+                    <button type="button" onclick="selectProperty('intensity', 3)">Mittel</button>
+                    <button type="button" onclick="selectProperty('intensity', 4)">Kräftig</button>
+                    <button type="button" onclick="selectProperty('intensity', 5)">Sehr kräftig</button>
+                </div>
+            </div>
+
+            <div>
+                <div class="property-label">Säure:</div>
+                <input type="hidden" id="acidity" name="acidity" value="3">
+                <div class="button-group acidity">
+                    <button type="button" onclick="selectProperty('acidity', 1)">Sehr niedrig</button>
+                    <button type="button" onclick="selectProperty('acidity', 2)">Niedrig</button>
+                    <button type="button" onclick="selectProperty('acidity', 3)">Mittel</button>
+                    <button type="button" onclick="selectProperty('acidity', 4)">Hoch</button>
+                    <button type="button" onclick="selectProperty('acidity', 5)">Sehr hoch</button>
+                </div>
+            </div>
+
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="text" id="origins" name="origins">
+                <label class="mdl-textfield__label" for="origins">Ursprungsländer</label>
+            </div>
+            <div id="originChips" class="mdl-chip-container"></div>
+
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="text" id="notes" name="notes">
+                <label class="mdl-textfield__label" for="notes">Noten</label>
+            </div>
+            <div id="noteChips" class="mdl-chip-container"></div>
+
             <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" type="submit">
-                Add Coffee
+                Kaffee hinzufügen
             </button>
         </form>
     </div>
 </div>
-{% endblock %}
 
-{% block scripts %}
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var uploadBtn = document.getElementById('uploadBtn');
-        var imagePreview = document.getElementById('imagePreview');
-        var imageUploadContainer = document.getElementById('imageUploadContainer');
-        var uploadLabel = document.querySelector('.image-upload-label');
-
-        uploadBtn.addEventListener('change', function (e) {
-            if (e.target.files && e.target.files[0]) {
-                var reader = new FileReader();
-                reader.onload = function (e) {
-                    imagePreview.src = e.target.result;
-                    imagePreview.style.display = 'block';
-                    uploadLabel.style.display = 'none';
-                    imageUploadContainer.style.border = 'none';
-                };
-                reader.readAsDataURL(e.target.files[0]);
-            }
-        });
-    });
-</script>
 {% endblock %}
