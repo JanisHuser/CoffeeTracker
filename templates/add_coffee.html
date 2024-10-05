@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="mdl-grid">
+    <div class="mdl-cell mdl-cell--12-col">
+        <h2>Add New Coffee Bean</h2>
+        <form action="{{ url_for('add_coffee') }}" method="post" enctype="multipart/form-data">
+            <div class="image-upload-container" id="imageUploadContainer">
+                <label for="uploadBtn" class="image-upload-label">
+                    <i class="material-icons">add_a_photo</i>
+                    <span>Upload Image</span>
+                </label>
+                <input type="file" id="uploadBtn" name="image" accept="image/*" required style="display: none;">
+                <img id="imagePreview" src="#" alt="Image preview"
+                    style="display: none; max-width: 100%; max-height: 100%; object-fit: contain;">
+            </div>
+
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="text" id="name" name="name" required>
+                <label class="mdl-textfield__label" for="name">Coffee Name</label>
+            </div>
+
+            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" type="submit">
+                Add Coffee
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var uploadBtn = document.getElementById('uploadBtn');
+        var imagePreview = document.getElementById('imagePreview');
+        var imageUploadContainer = document.getElementById('imageUploadContainer');
+        var uploadLabel = document.querySelector('.image-upload-label');
+
+        uploadBtn.addEventListener('change', function (e) {
+            if (e.target.files && e.target.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                    uploadLabel.style.display = 'none';
+                    imageUploadContainer.style.border = 'none';
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="mdl-grid">
+    <div class="mdl-cell mdl-cell--12-col">
+        <form action="{{ url_for('index') }}" method="get">
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="text" id="search" name="search">
+                <label class="mdl-textfield__label" for="search">Kaffee suchen</label>
+            </div>
+        </form>
+    </div>
+    {% for coffee in coffee_beans %}
+    <div class="mdl-cell mdl-cell--12-col mdl-cell--4-col-tablet mdl-cell--4-col-desktop">
+        <a href="{{ url_for('coffee_detail', id=coffee.id) }}" class="coffee-card-link">
+            <div class="demo-card-square mdl-card mdl-shadow--2dp">
+                <div class="mdl-card__title mdl-card--expand"
+                    style="background: url('{{ url_for('static', filename='uploads/' + coffee.image) }}') center / cover;">
+                    <h2 class="mdl-card__title-text">{{ coffee.name }}</h2>
+                </div>
+                <div class="mdl-card__supporting-text">
+                    Click to view details and add reviews.
+                </div>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+<a href="{{ url_for('add_coffee') }}"
+    class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored" id="add">
+    <i class="material-icons">add</i>
+</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var addButton = document.getElementById('add');
+        addButton.addEventListener('touchstart', function (e) {
+            e.preventDefault();
+            window.location.href = this.href;
+        });
+    });
+</script>
+{% endblock %}

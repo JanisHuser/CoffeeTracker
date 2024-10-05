@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="mdl-grid">
+    <div class="mdl-cell mdl-cell--6-col">
+        <h2>{{ coffee.name }}</h2>
+        <img src="{{ url_for('static', filename='uploads/' + coffee.image) }}" alt="{{ coffee.name }}"
+            style="max-width: 100%;">
+    </div>
+    <div class="mdl-cell mdl-cell--6-col">
+        <h3>Add Review</h3>
+        <form action="{{ url_for('coffee_detail', id=coffee.id) }}" method="post">
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="text" id="user_name" name="user_name" required>
+                <label class="mdl-textfield__label" for="user_name">Your Name</label>
+            </div>
+
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="range" id="strength" name="strength" min="1" max="10"
+                    value="5">
+                <label class="mdl-textfield__label" for="strength">Stärke: <span id="strengthValue">5</span>/10</label>
+            </div>
+
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="range" id="intensity" name="intensity" min="1" max="10"
+                    value="5">
+                <label class="mdl-textfield__label" for="intensity">Intensität: <span
+                        id="intensityValue">5</span>/10</label>
+            </div>
+
+            <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="decaf">
+                <input type="checkbox" id="decaf" name="decaf" class="mdl-checkbox__input">
+                <span class="mdl-checkbox__label">Entkoffeiniert</span>
+            </label>
+
+            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" type="submit">
+                Submit Review
+            </button>
+        </form>
+    </div>
+</div>
+<div class="mdl-grid">
+    <div class="mdl-cell mdl-cell--12-col">
+        <h3>Reviews</h3>
+        {% for review in coffee.reviews %}
+        <div class="demo-card-wide mdl-card mdl-shadow--2dp">
+            <div class="mdl-card__title">
+                <h2 class="mdl-card__title-text">Review by {{ review.user_name }}</h2>
+            </div>
+            <div class="mdl-card__supporting-text">
+                <p>Strength: {{ review.strength }}/10</p>
+                <p>Intensity: {{ review.intensity }}/10</p>
+                <p>Decaf: {{ 'Yes' if review.decaf else 'No' }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+<a href="{{ url_for('index') }}" class="mdl-button mdl-js-button mdl-button--raised">
+    Back to List
+</a>
+
+<script>
+    // Update slider values in real-time
+    document.getElementById('strength').addEventListener('input', function () {
+        document.getElementById('strengthValue').textContent = this.value;
+    });
+    document.getElementById('intensity').addEventListener('input', function () {
+        document.getElementById('intensityValue').textContent = this.value;
+    });
+</script>
+{% endblock %}
