@@ -58,6 +58,14 @@ def coffee_detail(id):
         return redirect(url_for('coffee_detail', id=id))
     return render_template('coffee_detail.html', coffee=coffee)
 
+def init_db():
+    with app.app_context():
+        db.create_all()
+        print("Database initialized.")
+
+def setup_app(app):
+    init_db()
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
