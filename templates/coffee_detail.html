@@ -29,7 +29,8 @@
                 {% for review in coffee.reviews %}
                 <div class="demo-card-wide mdl-card mdl-shadow--2dp">
                     <div class="mdl-card__supporting-text">
-                        <p><strong>{{ review.user_name }}</strong> hat diesen Kaffee bewertet:</p>
+                        <p><strong>{{ review.user_name }}</strong> hat am
+                            {{ review.date.strftime('%d.%m.%Y') }} kommentiert:</p>
                         <div class="rating">
                             {% for i in range(5, 0, -1) %}
                             <span class="star{% if i <= review.rating %} filled{% endif %}"

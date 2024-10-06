@@ -1,13 +1,24 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql import func, text
 from werkzeug.utils import secure_filename
 import os
+from datetime import datetime, timezone
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///coffee_reviews.db'
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100 MB
 db = SQLAlchemy(app)
+
+
+# Current schema version
+SCHEMA_VERSION = 2
+
+
+class SchemaVersion(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    version = db.Column(db.Integer, nullable=False)
 
 
 class CoffeeBean(db.Model):
@@ -36,6 +47,58 @@ class Review(db.Model):
     user_name = db.Column(db.String(50), nullable=False)
     coffee_bean_id = db.Column(db.Integer, db.ForeignKey(
         'coffee_bean.id'), nullable=False)
+    date = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
+
+
+def get_db_version():
+    version_record = SchemaVersion.query.first()
+    if version_record is None:
+        return 0
+    return version_record.version
+
+
+def set_db_version(version):
+    version_record = SchemaVersion.query.first()
+    if version_record is None:
+        version_record = SchemaVersion(version=version)
+        db.session.add(version_record)
+    else:
+        version_record.version = version
+    db.session.commit()
+
+
+def migrate_v1_to_v2():
+    # Add the date column to the review table
+    with db.engine.connect() as conn:
+        conn.execute(text('ALTER TABLE review ADD COLUMN date DATETIME'))
+        conn.commit()
+
+    # Update existing reviews with a default date
+    default_date = datetime.now(timezone.utc)
+    reviews = Review.query.all()
+    for review in reviews:
+        review.date = default_date
+
+    db.session.commit()
+    print("Migration from v1 to v2 completed successfully!")
+
+
+def run_migrations():
+    with app.app_context():
+        db.create_all()  # This will create the SchemaVersion table if it doesn't exist
+        current_version = get_db_version()
+
+        if current_version < 1:
+            # Your database is at the initial state, no migrations needed
+            set_db_version(1)
+
+        if current_version < 2:
+            migrate_v1_to_v2()
+            set_db_version(2)
+
+        # Add more migration steps here for future versions
+
+        print(f"Database schema is now at version {SCHEMA_VERSION}")
 
 
 @app.route('/')
@@ -123,6 +186,7 @@ def delete_review(coffee_id, review_id):
 
 
 if __name__ == '__main__':
+    run_migrations()
     with app.app_context():
         db.create_all()
     app.run(debug=True)
