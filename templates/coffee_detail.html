@@ -57,7 +57,7 @@
                     </div>
                     <div class="rating">
                         {% for i in range(0, 5, 1) %}
-                        <span class="star" data-rating="{{ i }}">&#9733;</span>
+                        <span class="star editable" data-rating="{{ i }}">&#9733;</span>
                         {% endfor %}
                         <input type="hidden" id="rating" name="rating" value="0" required>
                     </div>
@@ -81,7 +81,7 @@
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const stars = document.querySelectorAll('.rating .star');
+        const stars = document.querySelectorAll('.rating .star.editable');
         const ratingInput = document.getElementById('rating');
 
         stars.forEach(function (star) {
