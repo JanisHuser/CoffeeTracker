@@ -46,6 +46,10 @@ def index():
             CoffeeBean.name.contains(search)).all()
     else:
         coffee_beans = CoffeeBean.query.all()
+
+    # Sort coffee beans by their average rating
+    coffee_beans.sort(key=lambda x: x.average_rating, reverse=True)
+
     return render_template('index.html', coffee_beans=coffee_beans)
 
 
@@ -95,6 +99,27 @@ def coffee_detail(id):
         return redirect(url_for('coffee_detail', id=id))
 
     return render_template('coffee_detail.html', coffee=coffee)
+
+
+@app.route('/delete_coffee/<int:id>', methods=['POST'])
+def delete_coffee(id):
+    coffee = CoffeeBean.query.get_or_404(id)
+    if coffee.image:
+        try:
+            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], coffee.image))
+        except OSError:
+            pass  # If the file doesn't exist, just ignore
+    db.session.delete(coffee)
+    db.session.commit()
+    return redirect(url_for('index'))
+
+
+@app.route('/delete_review/<int:coffee_id>/<int:review_id>', methods=['POST'])
+def delete_review(coffee_id, review_id):
+    review = Review.query.get_or_404(review_id)
+    db.session.delete(review)
+    db.session.commit()
+    return redirect(url_for('coffee_detail', id=coffee_id))
 
 
 if __name__ == '__main__':
