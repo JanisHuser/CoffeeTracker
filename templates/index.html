@@ -1,43 +1,88 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="mdl-grid">
-    <div class="mdl-cell mdl-cell--12-col">
-        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-            <input class="mdl-textfield__input" type="text" id="search" name="search">
-            <label class="mdl-textfield__label" for="search">Kaffee suchen</label>
-        </div>
-    </div>
+<style>
+    .search-container {
+        width: 100%;
+        padding: 20px;
+        background-color: #f5f5f5;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
 
+    .search-input {
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .coffee-grid {
+        padding: 20px;
+    }
+
+    .demo-card-square.mdl-card {
+        width: 100%;
+        height: 320px;
+    }
+
+    .demo-card-square>.mdl-card__title {
+        height: 70%;
+    }
+
+    .demo-card-square>.mdl-card__supporting-text {
+        padding: 16px;
+    }
+
+    .coffee-card-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    .coffee-card-info {
+        font-size: 14px;
+        color: #757575;
+    }
+
+    #add {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+    }
+</style>
+
+<div class="search-container">
+    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label search-input">
+        <input class="mdl-textfield__input" type="text" id="search">
+        <label class="mdl-textfield__label" for="search">Kaffee suchen</label>
+    </div>
+    <button class="mdl-button mdl-js-button mdl-button--icon">
+        <i class="material-icons">search</i>
+    </button>
+</div>
+
+<div class="mdl-grid coffee-grid">
     {% for coffee in coffee_beans %}
-    <div class="mdl-cell mdl-cell--12-col mdl-cell--4-col-tablet mdl-cell--4-col-desktop">
+    <div class="mdl-cell mdl-cell--3-col mdl-cell--4-col-tablet mdl-cell--4-col-phone">
         <a href="{{ url_for('coffee_detail', id=coffee.id) }}" class="coffee-card-link">
             <div class="demo-card-square mdl-card mdl-shadow--2dp">
                 <div class="mdl-card__title mdl-card--expand"
                     style="background: url('{{ url_for('static', filename='uploads/' + coffee.image) }}') center / cover;">
-                    <h2 class="mdl-card__title-text">{{ coffee.name }}</h2>
                 </div>
                 <div class="mdl-card__supporting-text">
-                    {% if coffee.reviews %}
-                    <div class="rating">
-                        {% for i in range(coffee.average_rating | int) %}★{% endfor %}{% for i in range(5 -
-                        (coffee.average_rating | int)) %}☆{% endfor %}
-                        <span class="rating-value">({{ coffee.average_rating }})</span>
+                    <div class="coffee-card-title">{{ coffee.name }}</div>
+                    <div class="coffee-card-info">
+                        {% if coffee.average_rating > 0 %}
+                        Durchschnittsbewertung: {{ coffee.average_rating }} / 5
+                        {% else %}
+                        Noch keine Bewertungen
+                        {% endif %}
                     </div>
-                    {% else %}
-                    <div class="rating">Noch keine Bewertungen</div>
-                    {% endif %}
-                    <!-- <p style="margin: 5px 0;">Röstgrad: {{ coffee.roast }}</p>
-                    <p style="margin: 5px 0;">Intensität: {{ coffee.intensity }}</p>
-                    <p style="margin: 5px 0;">Säure: {{ coffee.acidity }}</p>
-                    <p style="margin: 5px 0;">Ursprungsländer: {{ coffee.origin_countries }}</p>
-                    <p style="margin: 5px 0;">Noten: {{ coffee.notes }}</p> -->
                 </div>
             </div>
         </a>
     </div>
     {% endfor %}
-
 </div>
 
 <a href="{{ url_for('add_coffee') }}" id="add"
@@ -45,23 +90,4 @@
     <i class="material-icons">add</i>
 </a>
 
-{% endblock %}
-
-{% block scripts %}
-<script>
-    document.getElementById('search').addEventListener('input', function () {
-        let searchTerm = this.value.toLowerCase();
-        let coffeeCards = document.getElementsByClassName('coffee-card-link');
-
-        for (let card of coffeeCards) {
-            let coffeeName = card.getElementsByClassName('mdl-card__title-text')[0].textContent.toLowerCase();
-
-            if (coffeeName.includes(searchTerm)) {
-                card.parentElement.style.display = 'block';
-            } else {
-                card.parentElement.style.display = 'none';
-            }
-        }
-    });
-</script>
 {% endblock %}

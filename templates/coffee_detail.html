@@ -1,83 +1,134 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %}
+{% block content %}
 
-<div class="mdl-grid">
-    <div class="mdl-cell mdl-cell--6-col">
-        <h2>{{ coffee.name }}</h2>
-        <img src="{{ url_for('static', filename='uploads/' + coffee.image) }}" style="max-width: 100%;"
-            alt="{{ coffee.name }}" />
+<div class="mdl-grid" style="background-color: #f5f5f5; padding: 8px 16px;">
+    <div class="mdl-cell mdl-cell--12-col">
+        <h2 class="mdl-typography--text-center" style="color: #424242; font-size: 26px; margin: 0;">{{ coffee.name }}
+        </h2>
     </div>
-
-    <div class="mdl-cell mdl-cell--6-col">
-        <h3>Bewertung hinzufügen</h3>
-
-        <form action="" method="POST">
-            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                <input class="mdl-textfield__input" type="text" id="user_name" name="user_name">
-                <label class="mdl-textfield__label" for="user_name">Dein Name</label>
-            </div>
-
-            <div class="rating-stars">
-                {% for i in range(1, 6, 1) %}
-                <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" />
-                <label for="star{{ i }}"></label>
-                {% endfor %}
-            </div>
-
-            <div class="mdl-textfield mdl-js-textfield">
-                <textarea class="mdl-textfield__input" type="text" rows="3" id="comment" name="comment"></textarea>
-                <label class="mdl-textfield__label" for="comment">Dein Kommentar</label>
-            </div>
-
-            <button class="mdl-button mdl-js-button mdl-button--raised" type="submit">Bewertung abgeben</button>
-        </form>
-    </div>
-
 </div>
 
 <div class="mdl-grid">
     <div class="mdl-cell mdl-cell--12-col">
-        <h3>Bewertungen</h3>
-
-        {% for review in coffee.reviews %}
-        <div class="demo-card-wide mdl-card mdl-shadow--2dp">
-            <div class="mdl-card__title">
-                <h2 class="mdl-card__title-text">Bewertung von {{ review.user_name }}</h2>
+        <div class="mdl-grid">
+            <div class="mdl-cell mdl-cell--12-col mdl-cell--8-col-tablet mdl-cell--6-col-desktop">
+                <img src="{{ url_for('static', filename='uploads/' + coffee.image) }}" alt="{{ coffee.name }}"
+                    style="max-width: 100%;">
             </div>
-            <div class="mdl-card__supporting-text">
-                {% for i in range(review.rating) %}★{% endfor %}{% for i in range(5 - review.rating) %}☆{% endfor %}
-                <p>{{ review.comment }}</p>
+            <div class="mdl-cell mdl-cell--12-col mdl-cell--8-col-tablet mdl-cell--6-col-desktop">
+                <h3 style="color: #424242;">Details</h3>
+                <p>
+                    <strong>Röstung:</strong> {{ coffee.roast }}<br>
+                    <strong>Intensität:</strong> {{ coffee.intensity }}/10<br>
+                    <strong>Stärke:</strong> {{ coffee.acidity }}/10<br>
+                    <strong>Decaf Available:</strong> {{ 'Yes' if coffee.decaf else 'No' }}
+                </p>
+
+
+                <h3 style="color: #424242;">Bewertungen</h3>
+                {% for review in coffee.reviews %}
+                <div class="demo-card-wide mdl-card mdl-shadow--2dp">
+                    <div class="mdl-card__supporting-text">
+                        <p><strong>{{ review.user_name }}</strong> hat diesen Kaffee bewertet:</p>
+                        <div class="rating">
+                            {% for i in range(1, 6) %}
+                            <span class="star{% if i <= review.rating %} filled{% endif %}"
+                                data-rating="{{ i }}">&#9733;</span>
+                            {% endfor %}
+                        </div>
+                        <p>{{ review.comment }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+
+
+                <h3 style="color: #424242;">Bewertung abgeben</h3>
+                <form action="{{ url_for('coffee_detail', id=coffee.id) }}" method="post">
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <input class="mdl-textfield__input" type="text" id="user_name" name="user_name" required>
+                        <label class="mdl-textfield__label" for="user_name">Dein Name</label>
+                    </div>
+                    <br />
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <textarea class="mdl-textfield__input" type="text" rows="5" id="comment" name="comment"
+                            required></textarea>
+                        <label class="mdl-textfield__label" for="comment">Dein Kommentar</label>
+                    </div>
+                    <div class="rating">
+                        {% for i in range(0, 5, 1) %}
+                        <span class="star" data-rating="{{ i }}">&#9733;</span>
+                        {% endfor %}
+                        <input type="hidden" id="rating" name="rating" value="0" required>
+                    </div>
+                    <br>
+                    <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+                        type="submit">Bewerten</button>
+                </form>
             </div>
         </div>
-        {% endfor %}
-
     </div>
 </div>
 
-<a href="{{ url_for('index') }}" class="mdl-button mdl-js-button mdl-button--raised">Zurück zur Übersicht</a>
+<div class="mdl-grid">
+    <div class="mdl-cell mdl-cell--12-col mdl-typography--text-center">
+        <a href="{{ url_for('index') }}" class="mdl-button mdl-js-button mdl-button--raised">Back to List</a>
+    </div>
+</div>
 
 {% endblock %}
 
-{% block styles %}
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const stars = document.querySelectorAll('.rating .star');
+        const ratingInput = document.getElementById('rating');
+
+        stars.forEach(function (star) {
+            star.addEventListener('click', function () {
+                const rating = this.getAttribute('data-rating');
+                ratingInput.value = rating;
+
+                stars.forEach(function (s) {
+                    s.classList.remove('filled');
+                });
+
+                for (let i = 0; i < rating; i++) {
+                    stars[i].classList.add('filled');
+                }
+            });
+        });
+    });
+</script>
+
 <style>
-    .rating-stars {
+    .rating {
+        unicode-bidi: bidi-override;
+        direction: rtl;
+        text-align: left;
+    }
+
+    .rating>.star {
         display: inline-block;
-    }
-
-    .rating-stars input[type="radio"] {
-        display: none;
-    }
-
-    .rating-stars label {
-        color: #ddd;
-        font-size: 30px;
-        padding: 0 5px;
+        position: relative;
+        width: 1.5em;
+        font-size: 2em;
         cursor: pointer;
+        color: #FFD700;
+
+
     }
 
-    .rating-stars label:hover,
-    .rating-stars label:hover~label,
-    .rating-stars input[type="radio"]:checked~label {
-        color: #ffca08;
+    .rating>.star:before {
+        content: "\2606";
+        /* Das ist der leere Stern */
+        position: absolute;
+    }
+
+    .rating>.star.filled:before {
+        content: "\2605";
+        color: #666;
+
+        /* Das ist der gefüllte Stern */
     }
 </style>
 {% endblock %}
