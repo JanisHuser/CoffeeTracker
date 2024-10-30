@@ -53,7 +53,7 @@ class Review(db.Model):
 def get_db_version():
     version_record = SchemaVersion.query.first()
     if version_record is None:
-        return 0
+        return SCHEMA_VERSION
     return version_record.version
 
 
