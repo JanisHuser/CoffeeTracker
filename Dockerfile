@@ -7,8 +7,7 @@ WORKDIR /api-flask
 # Copy the necessary files and directories into the container
 COPY . .
 
-VOLUME /api-flask/instance
-VOLUME /api-flask/uploads
+VOLUME /instance
 
 # Upgrade pip and install Python dependencies
 RUN pip3 install --upgrade pip && pip install --no-cache-dir -r requirements.txt
