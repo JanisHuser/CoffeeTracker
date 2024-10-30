@@ -1,19 +1,44 @@
-# Use the official Python 3.8 slim image as the base image
 FROM --platform=linux/amd64 python:3.8-slim
 
-# Set the working directory within the container
-WORKDIR /api-flask
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV FLASK_APP=app.py
+ENV FLASK_ENV=production
 
-# Copy the necessary files and directories into the container
+# Set the working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libc6-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first for better cache utilization
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the application code and entrypoint script
 COPY . .
 
-VOLUME /instance
+# Create necessary directories and set permissions
+RUN mkdir -p /app/instance/uploads && \
+    chmod 777 /app/instance && \
+    chmod 777 /app/instance/uploads && \
+    chmod +x entrypoint.sh
 
-# Upgrade pip and install Python dependencies
-RUN pip3 install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+# Create a non-root user and set ownership
+RUN useradd -m myuser && \
+    chown -R myuser:myuser /app
 
-# Expose port 5000 for the Flask application
+# Switch to non-root user
+USER myuser
+
+# Expose port 5000
 EXPOSE 5000
 
-# Start Gunicorn and point it to the create_app() function
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
+# Use entrypoint script
+ENTRYPOINT ["./entrypoint.sh"]
